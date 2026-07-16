@@ -20,15 +20,20 @@ TileForge is a dependency-free browser tool for converting images and drawing ed
 
 ## Run Locally
 
-TileForge has no packages to install and no build step. Clone the repository and serve its root directory:
+TileForge has no packages to install, build step, or local server requirement. Git is not required:
+
+1. On GitHub, click **Code**, then **Download ZIP**.
+2. Unzip the downloaded archive.
+3. Double-click `index.html` to open TileForge in your default browser.
+
+Alternatively, clone the repository with Git:
 
 ```bash
 git clone git@github.com:ch3mic4l/nes_tile_forge.git
 cd nes_tile_forge
-python3 -m http.server 8000
 ```
 
-Open [http://localhost:8000](http://localhost:8000) in a modern browser.
+Then double-click `index.html`. All image processing, editing, imports, previews, and exports run locally in the browser.
 
 ## Usage
 
