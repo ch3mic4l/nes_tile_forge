@@ -13,7 +13,7 @@
           <p class="eyebrow">NES GRAPHICS TOOLKIT</p>
           <h1>Tile<span>Forge</span></h1>
         </div>
-        <p class="subtitle">Turn a source image into ready-to-use NES background graphics.</p>
+        <p class="subtitle">Convert images or draw editable NES tiles, sprites, and backgrounds.</p>
       </header>
 
       <section class="workspace">
@@ -24,6 +24,29 @@
             <small>PNG, JPG, GIF, WebP</small>
           </label>
           <input id="imageInput" type="file" accept="image/*" hidden />
+
+          <div class="control-group editor-controls">
+            <h2>Create / edit</h2>
+            <div class="template-grid" aria-label="New canvas templates">
+              <button type="button" data-new-width="8" data-new-height="8">8×8 <small>sprite</small></button>
+              <button type="button" data-new-width="16" data-new-height="16">16×16 <small>sprite</small></button>
+              <button type="button" data-new-width="32" data-new-height="32">32×32 <small>sprite</small></button>
+              <button type="button" data-new-width="128" data-new-height="128">128×128 <small>tileset</small></button>
+            </div>
+            <button id="newBlankButton" class="secondary full-width" type="button">New blank at canvas size</button>
+            <div class="editor-toolbar" aria-label="Drawing tools">
+              <button class="tool-button active" type="button" data-tool="pencil" disabled title="Draw with the selected palette slot">Pencil</button>
+              <button class="tool-button" type="button" data-tool="fill" disabled title="Fill a connected area">Fill</button>
+              <button class="tool-button" type="button" data-tool="eyedropper" disabled title="Select a slot from the canvas">Pick</button>
+              <button id="clearCanvasButton" type="button" disabled title="Fill the canvas with slot 00">Clear</button>
+            </div>
+            <div class="import-grid" aria-label="Import NES files">
+              <label for="chrInput">Import CHR<input id="chrInput" type="file" accept=".chr,application/octet-stream" hidden /></label>
+              <label for="namInput">Import NAM<input id="namInput" type="file" accept=".nam,application/octet-stream" hidden /></label>
+              <label for="palInput">Import PAL<input id="palInput" type="file" accept=".pal,application/octet-stream" hidden /></label>
+            </div>
+            <p class="hint">Select a palette slot, then draw. Right-click paints slot 00.</p>
+          </div>
 
           <div class="control-group">
             <h2>Canvas</h2>
@@ -42,15 +65,46 @@
 
           <div class="control-group">
             <h2>Conversion</h2>
-            <label>Color processing
-              <select id="ditherMode">
-                <option value="none">Clean pixels</option>
-                <option value="bayer">Ordered dithering</option>
-              </select>
+            <div class="field-heading-with-help">
+              <label for="ditherMode">Color processing</label>
+              <button id="processingHelpButton" class="info-button" type="button" aria-label="Explain color processing options" aria-expanded="false">?</button>
+            </div>
+            <div id="processingHelp" class="palette-help processing-help" hidden>
+              <strong>Processing options</strong>
+              <span><b>Clean</b> nearest palette color with no dither texture.</span>
+              <span><b>Bayer 2×2</b> compact, regular checker-like dithering.</span>
+              <span><b>Bayer 4×4</b> finer ordered patterns for smoother gradients.</span>
+              <span><b>Floyd–Steinberg</b> detailed error diffusion; smooth but potentially noisy.</span>
+              <span><b>Atkinson</b> lighter error diffusion with a softer retro appearance.</span>
+              <span><b>Pattern</b> strong checkerboard mixing for a deliberate pixel-art texture.</span>
+              <span class="percentage-help"><b>Strength %</b> 0% approaches clean pixels; higher values increase the pattern or distributed color error. All modes use perceptual NES color matching.</span>
+            </div>
+            <select id="ditherMode">
+              <option value="none">Clean pixels</option>
+              <option value="bayer2">Bayer 2×2</option>
+              <option value="bayer4">Bayer 4×4</option>
+              <option value="floyd">Floyd–Steinberg</option>
+              <option value="atkinson">Atkinson</option>
+              <option value="pattern">Pattern dithering</option>
+            </select>
+            <label class="range-setting">Dither strength
+              <span><input id="ditherStrength" type="range" min="0" max="100" step="5" value="75" /> <output id="ditherStrengthValue">75%</output></span>
             </label>
+            <label class="check-row"><input id="alphaToSlotZero" type="checkbox" checked /> Transparent pixels use slot 00</label>
           </div>
 
-          <div class="control-group">
+          <button id="convertButton" class="primary" disabled title="Regenerate four NES palette colors from the source image and recalculate its pixel assignments">Remap image to palette</button>
+        </aside>
+
+        <section class="preview-area">
+          <div class="preview-toolbar">
+            <div><span class="status-dot"></span><span id="statusText">Waiting for an image or blank canvas</span></div>
+            <div class="preview-options">
+              <label class="zoom-control">Zoom <input id="zoomRange" type="range" min="1" max="32" step="1" value="1" /> <output id="zoomValue">1×</output></label>
+              <label class="grid-toggle"><input id="gridToggle" type="checkbox" checked /> 8×8 grid</label>
+            </div>
+          </div>
+          <div class="control-group preview-palette">
             <div class="heading-with-help">
               <h2>NES palette</h2>
               <button id="paletteHelpButton" class="info-button" type="button" aria-label="Explain palette color slots" aria-expanded="false">?</button>
@@ -69,23 +123,12 @@
             <p class="hint">Click a color, then choose from the NES palette below.</p>
           </div>
 
-          <button id="convertButton" class="primary" disabled>Convert image</button>
-        </aside>
-
-        <section class="preview-area">
-          <div class="preview-toolbar">
-            <div><span class="status-dot"></span><span id="statusText">Waiting for an image</span></div>
-            <div class="preview-options">
-              <label class="zoom-control">Zoom <input id="zoomRange" type="range" min="1" max="8" step="1" value="1" /> <output id="zoomValue">1×</output></label>
-              <label class="grid-toggle"><input id="gridToggle" type="checkbox" checked /> 8×8 grid</label>
-            </div>
-          </div>
           <div class="canvas-wrap">
             <canvas id="previewCanvas" width="256" height="240"></canvas>
             <div id="emptyState" class="empty-state">
               <div class="pixel-mountain">▟▆▂</div>
-              <strong>Drop an image here</strong>
-              <span>or use the chooser on the left</span>
+              <strong>Drop an image or NES file here</strong>
+              <span>or create a blank sprite or tileset</span>
             </div>
           </div>
           <div class="stats" id="stats">

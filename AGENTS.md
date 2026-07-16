@@ -2,17 +2,18 @@
 
 ## Project Structure & Module Organization
 
-TileForge is a dependency-free browser application. Keep changes within the existing three-file structure unless a feature clearly benefits from a new module:
+TileForge is a dependency-free browser app:
 
 - `index.html` defines controls, the preview canvas, and export actions.
-- `styles.css` contains the responsive layout and all visual states.
-- `app.js` owns image conversion, NES palette handling, canvas rendering, and binary exports.
+- `styles.css` contains layout and visual states.
+- `app.js` owns conversion, perceptual palette reduction, dithering, pixel editing, NES binary imports, rendering, and exports.
+- `README.md` documents user workflows and binary formats.
 
-There is currently no asset directory, generated output, or automated test directory. Do not commit exported `.chr`, `.nam`, `.pal`, or `.bin` files unless they are intentional test fixtures.
+No asset or automated test directories exist. Do not commit exported `.chr`, `.nam`, `.pal`, or `.bin` files except as intentional fixtures.
 
 ## Build, Test, and Development Commands
 
-No build step or package installation is required. Run a local server from the repository root:
+No installation or build is required. From the repository root, run:
 
 ```bash
 python3 -m http.server 8000
@@ -30,11 +31,15 @@ Use `git diff --check` to catch whitespace errors.
 
 ## Coding Style & Naming Conventions
 
-Use two-space indentation in HTML, CSS, and JavaScript. Prefer `const` and `let`, semicolons, strict equality, and small functions named for their action, such as `renderPalette()` or `recolorPreview()`. Use `camelCase` for JavaScript identifiers, `kebab-case` for CSS classes, and descriptive element IDs. Preserve the dependency-free design and use standard browser APIs. Keep NES-specific constants and binary-format logic explicit and commented when byte layout is not obvious.
+Use two-space indentation in HTML, CSS, and JavaScript. Prefer `const` and `let`, semicolons, strict equality, and small functions named for their action, such as `renderPalette()` or `quantizeDiffusion()`. Use `camelCase` for JavaScript identifiers, `kebab-case` for CSS classes, and descriptive element IDs. Preserve the dependency-free design and standard browser APIs. Keep NES byte layouts and color-processing math explicit and commented when behavior is not obvious.
+
+## Architecture & NES Data Rules
+
+`data.indexed` is the editable source of truth: each byte is palette slot `0`–`3`. Rebuild preview RGBA, deduplicated CHR, nametable indices, usage percentages, and exports whenever indexed pixels change. Canvas dimensions must remain multiples of eight. CHR tiles are 16 bytes in 2bpp planar format, nametable bytes reference at most 256 unique tiles, and PAL export contains four NES color indices. Standard 1,024-byte NAM imports use 960 tile bytes; attribute editing is not supported.
 
 ## Testing Guidelines
 
-There is no test framework or coverage requirement yet. Manually verify image upload and drag-and-drop, custom and preset canvas sizes, palette editing, zoom and grid controls, and every export button. Confirm dimensions remain multiples of eight and test both clean-pixel and dithering modes. For conversion changes, inspect exported byte lengths and verify CHR tiles remain 16 bytes each.
+No automated tests exist. Manually verify image upload and drag-and-drop; blank sprite/tileset creation; pencil, fill, pick, and clear tools; custom and preset sizes; 1×–32× zoom; palette editing and remapping; CHR/NAM/PAL imports; transparency-to-slot-00; all six processing modes and strength changes; and every export button. Confirm CHR tiles remain 16 bytes and remapping keeps preview colors, swatches, and usage percentages synchronized.
 
 ## Commit & Pull Request Guidelines
 
