@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TileForge — Image to NES</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header>
+        <div>
+          <p class="eyebrow">NES GRAPHICS TOOLKIT</p>
+          <h1>Tile<span>Forge</span></h1>
+        </div>
+        <p class="subtitle">Turn a source image into ready-to-use NES background graphics.</p>
+      </header>
+
+      <section class="workspace">
+        <aside class="controls">
+          <label class="upload" for="imageInput">
+            <span class="upload-icon">↑</span>
+            <strong>Choose image</strong>
+            <small>PNG, JPG, GIF, WebP</small>
+          </label>
+          <input id="imageInput" type="file" accept="image/*" hidden />
+
+          <div class="control-group">
+            <h2>Canvas</h2>
+            <div class="segmented" aria-label="Output size">
+              <button class="size-option active" data-width="256" data-height="240">256 × 240</button>
+              <button class="size-option" data-width="256" data-height="224">256 × 224</button>
+            </div>
+            <div class="dimensions">
+              <label>Width <input id="canvasWidth" type="number" min="8" max="512" step="8" value="256" /></label>
+              <span>×</span>
+              <label>Height <input id="canvasHeight" type="number" min="8" max="480" step="8" value="240" /></label>
+            </div>
+            <p class="hint">Use multiples of 8 for NES tiles.</p>
+            <label class="check-row"><input id="fitImage" type="checkbox" checked /> Crop to fill output</label>
+          </div>
+
+          <div class="control-group">
+            <h2>Conversion</h2>
+            <label>Color processing
+              <select id="ditherMode">
+                <option value="none">Clean pixels</option>
+                <option value="bayer">Ordered dithering</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="control-group">
+            <div class="heading-with-help">
+              <h2>NES palette</h2>
+              <button id="paletteHelpButton" class="info-button" type="button" aria-label="Explain palette color slots" aria-expanded="false">?</button>
+            </div>
+            <div id="paletteHelp" class="palette-help" hidden>
+              <strong>Four colors per tile</strong>
+              <span><b>00</b> background / transparent color</span>
+              <span><b>01</b> first visible shade</span>
+              <span><b>10</b> second visible shade</span>
+              <span><b>11</b> strongest detail shade</span>
+              <span class="percentage-help"><b>%</b> share of converted pixels using that slot. A slot at 0% will not visibly change the preview.</span>
+            </div>
+            <div id="paletteSwatches" class="swatches" aria-label="NES palette preview"></div>
+            <div id="paletteUsage" class="palette-usage" aria-label="Percentage of pixels assigned to each palette slot"></div>
+            <div id="palettePicker" class="palette-picker" aria-label="Choose an NES palette color"></div>
+            <p class="hint">Click a color, then choose from the NES palette below.</p>
+          </div>
+
+          <button id="convertButton" class="primary" disabled>Convert image</button>
+        </aside>
+
+        <section class="preview-area">
+          <div class="preview-toolbar">
+            <div><span class="status-dot"></span><span id="statusText">Waiting for an image</span></div>
+            <div class="preview-options">
+              <label class="zoom-control">Zoom <input id="zoomRange" type="range" min="1" max="8" step="1" value="1" /> <output id="zoomValue">1×</output></label>
+              <label class="grid-toggle"><input id="gridToggle" type="checkbox" checked /> 8×8 grid</label>
+            </div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="previewCanvas" width="256" height="240"></canvas>
+            <div id="emptyState" class="empty-state">
+              <div class="pixel-mountain">▟▆▂</div>
+              <strong>Drop an image here</strong>
+              <span>or use the chooser on the left</span>
+            </div>
+          </div>
+          <div class="stats" id="stats">
+            <span>— tiles</span><span>— unique tiles</span><span>— CHR bytes</span>
+          </div>
+        </section>
+      </section>
+
+      <section class="exports">
+        <div>
+          <p class="eyebrow">EXPORT</p>
+          <h2>Ready for your ROM</h2>
+          <p>CHR is 2bpp planar tile data. Nametable is a 32-column tile map.</p>
+        </div>
+        <div class="export-actions">
+          <button data-export="chr" disabled>CHR tiles <small>.chr</small></button>
+          <button data-export="nam" disabled>Nametable <small>.nam</small></button>
+          <button data-export="pal" disabled>Palette <small>.pal</small></button>
+          <button data-export="all" class="accent" disabled>Download bundle <small>.bin</small></button>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
