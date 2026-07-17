@@ -2,6 +2,8 @@
 
 TileForge is a dependency-free browser tool for converting images and drawing editable NES tiles, sprites, and background graphics. It reduces an image to four NES palette colors, divides it into 8×8 tiles, removes duplicate tiles, and exports the result as CHR, nametable, and palette data.
 
+![TileForge NES graphics editor in dark mode](docs/tileforge-interface.png)
+
 ## Features
 
 - Upload or drag and drop PNG, JPG, GIF, and WebP images
@@ -14,7 +16,8 @@ TileForge is a dependency-free browser tool for converting images and drawing ed
 - Adjust dither strength and map transparent source pixels to palette slot 00
 - Edit all four NES palette slots without changing pixel assignments
 - Inspect palette-slot usage percentages
-- Preview pixels at 1×–32× zoom with an optional 8×8 grid
+- Preview pixels at 1×–32× zoom with fine pixel lines and stronger 8×8 tile boundaries
+- Switch between persistent light and dark interface themes
 - Export individual files or a combined binary bundle
 - Detect output that exceeds one 256-tile CHR bank
 

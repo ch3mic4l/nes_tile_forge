@@ -1,6 +1,12 @@
+const themeToggle = document.querySelector("#themeToggle");
+function storedTheme(){try{return localStorage.getItem("tileforge-theme");}catch{return null;}}
+function applyTheme(theme,persist=false){document.documentElement.dataset.theme=theme;const dark=theme==="dark";themeToggle.textContent=dark?"☀ Light mode":"☾ Dark mode";themeToggle.setAttribute("aria-label",dark?"Switch to light mode":"Switch to dark mode");themeToggle.setAttribute("aria-pressed",String(dark));if(persist){try{localStorage.setItem("tileforge-theme",theme);}catch{}}}
+applyTheme(storedTheme() || (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
+themeToggle.onclick=()=>applyTheme(document.documentElement.dataset.theme==="dark"?"light":"dark",true);
+
 const NES = [0x7C7C7C,0x0000FC,0x0000BC,0x4428BC,0x940084,0xA80020,0xA81000,0x881400,0x503000,0x007800,0x006800,0x005800,0x004058,0x000000,0,0,0xBCBCBC,0x0078F8,0x0058F8,0x6844FC,0xD800CC,0xE40058,0xF83800,0xE45C10,0xAC7C00,0x00B800,0x00A800,0x00A844,0x008888,0,0,0,0xF8F8F8,0x3CBCFC,0x6888FC,0x9878F8,0xF878F8,0xF85898,0xF87858,0xFCA044,0xF8B800,0xB8F818,0x58D854,0x58F898,0x00E8D8,0x787878,0,0,0xFCFCFC,0xA4E4FC,0xB8B8F8,0xD8B8F8,0xF8B8F8,0xF8A4C0,0xF0D0B0,0xFCE0A8,0xF8D878,0xD8F878,0xB8F8B8,0xB8F8D8,0x00FCFC,0xF8D8F8,0,0].map(n => n ? [n>>16,(n>>8)&255,n&255] : [0,0,0]);
 const NES_CHOICES = NES.map((color,index)=>({color,index})).filter(({color,index},position,all)=>{const key=color.join(',');if(key==='0,0,0')return index===0x0F;return all.findIndex(entry=>entry.color.join(',')===key)===position;}).map(entry=>entry.index);
-const canvas = document.querySelector('#previewCanvas'), ctx = canvas.getContext('2d', {willReadFrequently:true});
+const canvas = document.querySelector('#previewCanvas'), ctx = canvas.getContext('2d', {willReadFrequently:true}), gridOverlay = document.querySelector('#gridOverlay');
 const input = document.querySelector('#imageInput'), empty = document.querySelector('#emptyState'), status = document.querySelector('#statusText'), dot = document.querySelector('.status-dot');
 let source, output = { width:256, height:240 }, data = null, palette = [0x0F,0x21,0x30,0x16], activeSwatch = 0;
 const swatches = document.querySelector('#paletteSwatches'), picker = document.querySelector('#palettePicker');
@@ -33,8 +39,8 @@ document.querySelector('.canvas-wrap').ondragover = e => e.preventDefault();
 document.querySelector('.canvas-wrap').ondrop = e => { e.preventDefault(); load(e.dataTransfer.files[0]); };
 document.querySelector('#convertButton').onclick = convert;
 document.querySelector('#paletteHelpButton').onclick = () => { const help=document.querySelector('#paletteHelp'), open=help.hidden; help.hidden=!open; document.querySelector('#paletteHelpButton').setAttribute('aria-expanded',String(open)); };
-document.querySelector('#gridToggle').onchange = () => data && draw(data.rgba);
-document.querySelector('#zoomRange').oninput = e => { const zoom=+e.target.value; document.querySelector('#zoomValue').value=`${zoom}×`; canvas.style.width=`${output.width*zoom}px`; canvas.style.height=`${output.height*zoom}px`; };
+document.querySelector('#gridToggle').onchange = updateGridOverlay;
+document.querySelector('#zoomRange').oninput = e => { const zoom=+e.target.value; document.querySelector('#zoomValue').value=`${zoom}×`; canvas.style.width=`${output.width*zoom}px`; canvas.style.height=`${output.height*zoom}px`; updateGridOverlay(); };
 document.querySelectorAll('#ditherMode').forEach(el => el.onchange = () => source && convert());
 document.querySelectorAll('[data-export]').forEach(b => b.onclick = () => download(b.dataset.export));
 
@@ -63,7 +69,8 @@ function convert() {
   const overflow=map.size>256;
   data={rgba,indexed,chr:new Uint8Array(chr),nam:new Uint8Array(nam),palette:new Uint8Array(global),unique:map.size}; draw(rgba); renderUsage(); empty.hidden=true; document.querySelector('#convertButton').disabled=false; document.querySelectorAll('[data-export]').forEach(b=>b.disabled=overflow); status.textContent=overflow ? map.size+' unique tiles — reduce detail to fit one CHR bank' : 'Converted and ready to export'; dot.classList.toggle('ready',!overflow); document.querySelector('#stats').innerHTML=`<span>${nam.length} tiles</span><span>${map.size} unique tiles</span><span>${chr.length} CHR bytes</span>`;
 }
-function draw(rgba){const image=new ImageData(rgba,output.width,output.height);ctx.putImageData(image,0,0);if(document.querySelector('#gridToggle').checked){ctx.strokeStyle='#ffffff55';ctx.lineWidth=1;for(let x=0;x<=output.width;x+=8){ctx.beginPath();ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,output.height);ctx.stroke()}for(let y=0;y<=output.height;y+=8){ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(output.width,y+.5);ctx.stroke()}}}
+function updateGridOverlay(){const zoom=+document.querySelector('#zoomRange').value, visible=Boolean(data)&&document.querySelector('#gridToggle').checked;gridOverlay.hidden=!visible;gridOverlay.style.setProperty('--pixel-grid-size',`${zoom}px`);gridOverlay.style.setProperty('--tile-grid-size',`${zoom*8}px`);gridOverlay.classList.toggle('show-pixels',zoom>=4);}
+function draw(rgba){const image=new ImageData(rgba,output.width,output.height);ctx.putImageData(image,0,0);updateGridOverlay();}
 function download(kind){let bytes, name; if(kind==='chr'){bytes=data.chr;name='tiles.chr'}else if(kind==='nam'){bytes=data.nam;name='nametable.nam'}else if(kind==='pal'){bytes=data.palette;name='palette.pal'}else{bytes=new Uint8Array(data.chr.length+data.nam.length+data.palette.length);bytes.set(data.chr);bytes.set(data.nam,data.chr.length);bytes.set(data.palette,data.chr.length+data.nam.length);name='nes-graphics.bin'} const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 
 

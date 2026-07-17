@@ -14,6 +14,7 @@
           <h1>Tile<span>Forge</span></h1>
         </div>
         <p class="subtitle">Convert images or draw editable NES tiles, sprites, and backgrounds.</p>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">☾ Dark mode</button>
       </header>
 
       <section class="workspace">
@@ -101,7 +102,7 @@
             <div><span class="status-dot"></span><span id="statusText">Waiting for an image or blank canvas</span></div>
             <div class="preview-options">
               <label class="zoom-control">Zoom <input id="zoomRange" type="range" min="1" max="32" step="1" value="1" /> <output id="zoomValue">1×</output></label>
-              <label class="grid-toggle"><input id="gridToggle" type="checkbox" checked /> 8×8 grid</label>
+              <label class="grid-toggle"><input id="gridToggle" type="checkbox" checked /> Pixel + 8×8 grid</label>
             </div>
           </div>
           <div class="control-group preview-palette">
@@ -124,7 +125,10 @@
           </div>
 
           <div class="canvas-wrap">
-            <canvas id="previewCanvas" width="256" height="240"></canvas>
+            <div id="canvasStage" class="canvas-stage">
+              <canvas id="previewCanvas" width="256" height="240"></canvas>
+              <div id="gridOverlay" class="grid-overlay" aria-hidden="true" hidden></div>
+            </div>
             <div id="emptyState" class="empty-state">
               <div class="pixel-mountain">▟▆▂</div>
               <strong>Drop an image or NES file here</strong>
